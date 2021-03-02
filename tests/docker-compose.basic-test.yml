@@ -1,0 +1,10 @@
+version: "2.4"
+services:
+
+  ingress:
+    image: sitecore-trekroner:${VERSION:-latest}
+    build:
+      context: ../src/
+  
+  sample:
+    image: mcr.microsoft.com/dotnet/samples:aspnetapp
