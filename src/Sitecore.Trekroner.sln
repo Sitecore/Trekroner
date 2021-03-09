@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31025.194
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sitecore.Trekroner", "Sitecore.Trekoner\Sitecore.Trekroner.csproj", "{EF09829A-9784-4243-9317-9E93220C5E71}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sitecore.Trekroner.Tests", "Sitecore.Trekroner.Tests\Sitecore.Trekroner.Tests.csproj", "{058FA850-E7D7-4334-BB24-6577D87C8068}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF09829A-9784-4243-9317-9E93220C5E71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF09829A-9784-4243-9317-9E93220C5E71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF09829A-9784-4243-9317-9E93220C5E71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF09829A-9784-4243-9317-9E93220C5E71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{058FA850-E7D7-4334-BB24-6577D87C8068}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{058FA850-E7D7-4334-BB24-6577D87C8068}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{058FA850-E7D7-4334-BB24-6577D87C8068}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{058FA850-E7D7-4334-BB24-6577D87C8068}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {593AD504-CAB0-4B7F-925B-68F3C0CF86E4}
+	EndGlobalSection
+EndGlobal

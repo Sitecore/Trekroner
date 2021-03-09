@@ -13,4 +13,5 @@
   * Can this be done in a user-friendly way that would also be compatible with CLI?
 * [ ] Status page
 * [ ] Container actions on status page (e.g. restart)
-* [ ] Notifications?
+* [ ] Notifications of issues via browser?
+* [ ] Certificate generation w/ mkcert for provided root CA?

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
+using System.IO.Abstractions;
 
 namespace Sitecore.Trekroner
 {
@@ -22,6 +23,7 @@ namespace Sitecore.Trekroner
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<IFileSystem, FileSystem>();
             services.AddReverseProxy() 
                 .LoadFromConfig(Configuration.GetSection("ReverseProxy"));
         }
