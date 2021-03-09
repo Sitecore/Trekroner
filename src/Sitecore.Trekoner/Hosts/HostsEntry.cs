@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Sitecore.Trekroner.HostsWriter
+namespace Sitecore.Trekroner.Hosts
 {
     public class HostsEntry
     {

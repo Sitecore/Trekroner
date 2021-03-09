@@ -12,6 +12,7 @@
 * [ ] Wait / retry for starting containers
   * Can this be done in a user-friendly way that would also be compatible with CLI?
 * [ ] Status page
+  * [ ] Status for hosts writer
 * [ ] Container actions on status page (e.g. restart)
 * [ ] Notifications of issues via browser?
 * [ ] Certificate generation w/ mkcert for provided root CA?
