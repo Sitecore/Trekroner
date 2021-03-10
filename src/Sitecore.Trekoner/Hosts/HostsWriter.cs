@@ -16,7 +16,7 @@ namespace Sitecore.Trekroner.Hosts
             FileSystem = fileSystem;
         }
 
-        public async Task WriteHosts(string filePath, IEnumerable<HostsEntry> entries, string sourceIdentifier)
+        public async Task WriteHosts(string filePath, IEnumerable<HostsEntry> entries, string sourceIdentifier, string backupExtension = null)
         {
             if (!FileSystem.File.Exists(filePath))
             {
@@ -25,8 +25,22 @@ namespace Sitecore.Trekroner.Hosts
                     HostsWriterError = HostsWriterError.FileDoesNotExist
                 };
             }
+
             var hostLines = entries.Select(entry => $"{entry.IpAddress}\t{string.Join(' ', entry.Hosts)}\t#{sourceIdentifier}");
+
+            var backupFile = !string.IsNullOrEmpty(backupExtension) ? filePath + backupExtension : null;
+            if (backupFile != null)
+            {
+                FileSystem.File.Copy(filePath, backupFile);
+            }
+
             await FileSystem.File.AppendAllLinesAsync(filePath, hostLines);
+
+            // no error handling  -- we don't want to execute this if the file write fails
+            if (backupFile != null)
+            {
+                FileSystem.File.Delete(backupFile);
+            }
         }
 
         public async Task RemoveAll(string filePath, string sourceIdentifier)
