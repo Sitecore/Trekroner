@@ -28,26 +28,44 @@ namespace Sitecore.Trekroner.Hosts
 
             var hostLines = entries.Select(entry => $"{entry.IpAddress}\t{string.Join(' ', entry.Hosts)}\t#{sourceIdentifier}");
 
+            await WithBackup(filePath, backupExtension,
+                () => FileSystem.File.AppendAllLinesAsync(filePath, hostLines)
+            );
+        }
+
+        public async Task RemoveAll(string filePath, string sourceIdentifier, string backupExtension = null)
+        {
+            if (!FileSystem.File.Exists(filePath))
+            {
+                throw new HostsWriterException($"Cannot remove hosts from {filePath}: File does not exist")
+                {
+                    HostsWriterError = HostsWriterError.FileDoesNotExist
+                };
+            }
+
+            IEnumerable<string> hostLines = await FileSystem.File.ReadAllLinesAsync(filePath);
+            hostLines = hostLines.Where(line => !line.EndsWith($"#{sourceIdentifier}"));
+
+            await WithBackup(filePath, backupExtension,
+                () => FileSystem.File.WriteAllLinesAsync(filePath, hostLines)
+            );
+        }
+
+        private async Task WithBackup(string filePath, string backupExtension, Func<Task> action)
+        {
             var backupFile = !string.IsNullOrEmpty(backupExtension) ? filePath + backupExtension : null;
             if (backupFile != null)
             {
                 FileSystem.File.Copy(filePath, backupFile);
             }
 
-            await FileSystem.File.AppendAllLinesAsync(filePath, hostLines);
+            await action();
 
             // no error handling  -- we don't want to execute this if the file write fails
             if (backupFile != null)
             {
                 FileSystem.File.Delete(backupFile);
             }
-        }
-
-        public async Task RemoveAll(string filePath, string sourceIdentifier)
-        {
-            IEnumerable<string> hostLines = await FileSystem.File.ReadAllLinesAsync(filePath);
-            hostLines = hostLines.Where(line => !line.EndsWith($"#{sourceIdentifier}"));
-            await FileSystem.File.WriteAllLinesAsync(filePath, hostLines);
         }
     }
 }
