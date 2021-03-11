@@ -4,7 +4,7 @@ services:
   ingress:
     image: sitecore-trekroner:${VERSION:-latest}
     build:
-      context: ../src/
+      context: ../src/Sitecore.Trekoner
   
   sample:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp

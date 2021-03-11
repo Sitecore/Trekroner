@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO.Abstractions;
+using Microsoft.ReverseProxy.Abstractions;
 
 namespace Sitecore.Trekroner
 {
@@ -24,8 +25,33 @@ namespace Sitecore.Trekroner
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IFileSystem, FileSystem>();
-            services.AddReverseProxy() 
-                .LoadFromConfig(Configuration.GetSection("ReverseProxy"));
+
+            var routes = new[]
+            {
+                new ProxyRoute()
+                {
+                    RouteId = "route1",
+                    ClusterId = "cluster1",
+                    Match = new ProxyMatch
+                    {
+                        Path = "{**catch-all}"
+                    }
+                }
+            };
+            var clusters = new[]
+            {
+                new Cluster()
+                {
+                    Id = "cluster1",
+                    Destinations = new Dictionary<string, Destination>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "destination1", new Destination() { Address = "http://sample/" } }
+                    }
+                }
+            };
+
+            services.AddReverseProxy()
+                .LoadFromMemory(routes, clusters);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,7 +65,7 @@ namespace Sitecore.Trekroner
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapReverseProxy(); 
+                endpoints.MapReverseProxy();
             });
         }
     }
