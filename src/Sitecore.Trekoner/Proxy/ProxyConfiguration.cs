@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Sitecore.Trekroner.Configuration
+namespace Sitecore.Trekroner.Proxy
 {
-    public class TrekronerProxyConfiguration
+    public class ProxyConfiguration
     {
+        public static readonly string Key = "Proxy";
+
         public string Domain { get; set; }
-        public string[] Services { get; set; }
     }
 }

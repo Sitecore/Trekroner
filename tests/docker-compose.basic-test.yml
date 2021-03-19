@@ -9,6 +9,7 @@ services:
       - c:\windows\system32\drivers\etc:c:\driversetc
     #  - .\docker\https:c:\https
     environment:
+      Proxy__Domain: "basic-test.test"
       HostsWriter__FilePath: "c:\\driversetc\\hosts"
       HostsWriter__SourceIdentifier: "hostswriter basic-test"
       HostsWriter__BackupExtension: ".hostswriter.basic-test.bak"

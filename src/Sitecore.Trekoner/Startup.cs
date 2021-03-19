@@ -10,10 +10,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO.Abstractions;
 using Microsoft.ReverseProxy.Abstractions;
-using Sitecore.Trekroner.Configuration;
 using System.Net;
 using Sitecore.Trekroner.Hosts;
 using System.Threading;
+using Sitecore.Trekroner.Services;
+using Sitecore.Trekroner.Proxy;
 
 namespace Sitecore.Trekroner
 {
@@ -29,36 +30,28 @@ namespace Sitecore.Trekroner
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IFileSystem, FileSystem>();
+            services.AddScoped<IServiceConfigurationProvider, ServiceConfigurationProvider>();
             services.AddScoped<HostsWriter, HostsWriter>();
             services.AddHostedService<HostsWriterService>();
 
-            var configuration = new TrekronerProxyConfiguration
-            {
-                Domain = "trekroner.test",
-                Services = new[]
-                {
-                    "cm",
-                    "id",
-                    "xconnect"
-                }
-            };
-            services.AddSingleton(configuration);
+            var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
+            var serviceConfiguration = new ServiceConfigurationProvider().GetConfiguration();
 
-            var routes = configuration.Services.Select(x => new ProxyRoute()
+            var routes = serviceConfiguration.Services.Select(x => new ProxyRoute()
             {
-                RouteId = $"route-{x}",
-                ClusterId = $"cluster-{x}",
+                RouteId = $"route-{x.Name}",
+                ClusterId = $"cluster-{x.Name}",
                 Match = new ProxyMatch
                 {
-                    Hosts = new[] { $"{x}.{configuration.Domain}" }
+                    Hosts = new[] { $"{x.Name}.{proxyConfiguration.Domain}" }
                 }
             }).ToArray();
-            var clusters = configuration.Services.Select(x => new Cluster()
+            var clusters = serviceConfiguration.Services.Select(x => new Cluster()
             {
-                Id = $"cluster-{x}",
+                Id = $"cluster-{x.Name}",
                 Destinations = new Dictionary<string, Destination>(StringComparer.OrdinalIgnoreCase)
                 {
-                    { $"destination-{x}", new Destination() { Address = $"http://{x}/" } }
+                    { $"destination-{x.Name}", new Destination() { Address = x.InternalUrl.ToString() } }
                 }
             }).ToArray();
 
@@ -84,26 +77,29 @@ namespace Sitecore.Trekroner
         private class HostsWriterService : IHostedService
         {
             private readonly HostsWriterConfiguration WriterConfiguration;
-            private readonly TrekronerProxyConfiguration ProxyConfiguration;
+            private readonly ProxyConfiguration ProxyConfiguration;
+            private readonly ServiceConfiguration ServiceConfiguration;
             private readonly HostsWriter HostsWriter;
 
-            public HostsWriterService(IConfiguration configuration, TrekronerProxyConfiguration proxyConfiguration, HostsWriter hostsWriter)
+            public HostsWriterService(IConfiguration configuration, IServiceConfigurationProvider serviceConfigurationProvider, HostsWriter hostsWriter)
             {
                 WriterConfiguration = configuration.GetSection(HostsWriterConfiguration.Key).Get<HostsWriterConfiguration>();
-                ProxyConfiguration = proxyConfiguration;
+                ProxyConfiguration = configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
+                ServiceConfiguration = serviceConfigurationProvider.GetConfiguration();
                 HostsWriter = hostsWriter;
             }
 
             public async Task StartAsync(CancellationToken cancellationToken)
             {
+
                 var currentIp = Dns.GetHostEntry(Dns.GetHostName())
                     .AddressList
                     .First(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     .ToString();
-                var hostsEntries = ProxyConfiguration.Services.Select(x => new HostsEntry
+                var hostsEntries = ServiceConfiguration.Services.Select(x => new HostsEntry
                 {
                     IpAddress = currentIp,
-                    Hosts = new[] { $"{x}.{ProxyConfiguration.Domain}" }
+                    Hosts = new[] { $"{x.Name}.{ProxyConfiguration.Domain}" }
                 });
                 Console.WriteLine($"Adding hosts entries for {currentIp}");
                 await HostsWriter.WriteHosts(hostsEntries, WriterConfiguration);
