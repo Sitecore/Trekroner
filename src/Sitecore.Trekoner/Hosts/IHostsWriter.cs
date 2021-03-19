@@ -8,7 +8,7 @@ namespace Sitecore.Trekroner.Hosts
 {
     interface IHostsWriter
     {
-        Task WriteHosts(string filePath, IEnumerable<HostsEntry> hosts, string sourceIdentifier, string backupExtension = null);
-        Task RemoveAll(string filePath, string sourceIdentifier, string backupExtension = null);
+        Task WriteHosts(IEnumerable<HostsEntry> hosts, HostsWriterConfiguration config);
+        Task RemoveAll(HostsWriterConfiguration config);
     }
 }

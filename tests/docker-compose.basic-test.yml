@@ -8,7 +8,10 @@ services:
     volumes:
       - c:\windows\system32\drivers\etc:c:\driversetc
     #  - .\docker\https:c:\https
-    #environment:
+    environment:
+      HostsWriter__FilePath: "c:\\driversetc\\hosts"
+      HostsWriter__SourceIdentifier: "hostswriter basic-test"
+      HostsWriter__BackupExtension: ".hostswriter.basic-test.bak"
     #  ASPNETCORE_URLS: "https://+;http://+"
     #  ASPNETCORE_Kestrel__Certificates__Default__Path: "\\https\\localhost.pfx"
     #  ASPNETCORE_Kestrel__Certificates__Default__Password: "b"

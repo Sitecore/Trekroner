@@ -16,38 +16,52 @@ namespace Sitecore.Trekroner.Hosts
             FileSystem = fileSystem;
         }
 
-        public async Task WriteHosts(string filePath, IEnumerable<HostsEntry> entries, string sourceIdentifier, string backupExtension = null)
+        public async Task WriteHosts(IEnumerable<HostsEntry> entries, HostsWriterConfiguration config)
         {
-            if (!FileSystem.File.Exists(filePath))
+            if (config == null)
             {
-                throw new HostsWriterException($"Cannot write hosts to {filePath}: File does not exist")
+                throw new ArgumentException($"{nameof(config)} cannot be null");
+            }
+
+            if (!FileSystem.File.Exists(config.FilePath))
+            {
+                throw new HostsWriterException($"Cannot write hosts to {config.FilePath}: File does not exist")
                 {
                     HostsWriterError = HostsWriterError.FileDoesNotExist
                 };
             }
 
-            var hostLines = entries.Select(entry => $"{entry.IpAddress}\t{string.Join(' ', entry.Hosts)}\t#{sourceIdentifier}");
+            var hostLines = new List<string>();
+            hostLines.Add(Environment.NewLine);
+            hostLines.AddRange(
+                entries.Select(entry => $"{entry.IpAddress}\t{string.Join(' ', entry.Hosts)}\t#{config.SourceIdentifier}")
+            );
 
-            await WithBackup(filePath, backupExtension,
-                () => FileSystem.File.AppendAllLinesAsync(filePath, hostLines)
+            await WithBackup(config.FilePath, config.BackupExtension,
+                () => FileSystem.File.AppendAllLinesAsync(config.FilePath, hostLines)
             );
         }
 
-        public async Task RemoveAll(string filePath, string sourceIdentifier, string backupExtension = null)
+        public async Task RemoveAll(HostsWriterConfiguration config)
         {
-            if (!FileSystem.File.Exists(filePath))
+            if (config == null)
             {
-                throw new HostsWriterException($"Cannot remove hosts from {filePath}: File does not exist")
+                throw new ArgumentException($"{nameof(config)} cannot be null");
+            }
+
+            if (!FileSystem.File.Exists(config.FilePath))
+            {
+                throw new HostsWriterException($"Cannot remove hosts from {config.FilePath}: File does not exist")
                 {
                     HostsWriterError = HostsWriterError.FileDoesNotExist
                 };
             }
 
-            IEnumerable<string> hostLines = await FileSystem.File.ReadAllLinesAsync(filePath);
-            hostLines = hostLines.Where(line => !line.EndsWith($"#{sourceIdentifier}"));
+            IEnumerable<string> hostLines = await FileSystem.File.ReadAllLinesAsync(config.FilePath);
+            hostLines = hostLines.Where(line => !line.EndsWith($"#{config.SourceIdentifier}"));
 
-            await WithBackup(filePath, backupExtension,
-                () => FileSystem.File.WriteAllLinesAsync(filePath, hostLines)
+            await WithBackup(config.FilePath, config.BackupExtension,
+                () => FileSystem.File.WriteAllLinesAsync(config.FilePath, hostLines)
             );
         }
 

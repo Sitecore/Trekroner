@@ -83,11 +83,13 @@ namespace Sitecore.Trekroner
 
         private class HostsWriterService : IHostedService
         {
+            private readonly HostsWriterConfiguration WriterConfiguration;
             private readonly TrekronerProxyConfiguration ProxyConfiguration;
             private readonly HostsWriter HostsWriter;
 
-            public HostsWriterService(TrekronerProxyConfiguration proxyConfiguration, HostsWriter hostsWriter)
+            public HostsWriterService(IConfiguration configuration, TrekronerProxyConfiguration proxyConfiguration, HostsWriter hostsWriter)
             {
+                WriterConfiguration = configuration.GetSection(HostsWriterConfiguration.Key).Get<HostsWriterConfiguration>();
                 ProxyConfiguration = proxyConfiguration;
                 HostsWriter = hostsWriter;
             }
@@ -104,12 +106,12 @@ namespace Sitecore.Trekroner
                     Hosts = new[] { $"{x}.{ProxyConfiguration.Domain}" }
                 });
                 Console.WriteLine($"Adding hosts entries for {currentIp}");
-                await HostsWriter.WriteHosts("c:\\driversetc\\hosts", hostsEntries, "trekroner", ".trekroner.bak");
+                await HostsWriter.WriteHosts(hostsEntries, WriterConfiguration);
             }
 
             public async Task StopAsync(CancellationToken cancellationToken)
             {
-                await HostsWriter.RemoveAll("c:\\driversetc\\hosts", "trekroner", ".trekroner.bak");
+                await HostsWriter.RemoveAll(WriterConfiguration);
             }
         }
     }
