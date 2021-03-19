@@ -1,9 +1,11 @@
 
-* [ ] Add hosts writer for proxy 
+# Project Trekroner TODO
+* [X] Add hosts writer for proxy 
   * https://github.com/RAhnemann/windows-hosts-writer/blob/master/Program.cs
-* [ ] Codefig for YARP
+* [X] Codefig for YARP
 * [ ] Custom configuration (for topologies)
-* [ ] Add configuration from environment variable
+* [ ] Add configuration from docker-compose
+* [ ] TLS from self-signed cert
 * [ ] Error page for failed proxy
   * [ ] Basic error page for missing container or unable to connect
   * [ ] Add container logs to error page
@@ -15,4 +17,7 @@
   * [ ] Status for hosts writer
 * [ ] Container actions on status page (e.g. restart)
 * [ ] Notifications of issues via browser?
-* [ ] Certificate generation w/ mkcert for provided root CA?
+
+## ISSUES
+* [ ] EOL with hosts file
+* [ ] Hosts file - Need to remove before write on startup

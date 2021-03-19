@@ -10,6 +10,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO.Abstractions;
 using Microsoft.ReverseProxy.Abstractions;
+using Sitecore.Trekroner.Configuration;
+using System.Net;
+using Sitecore.Trekroner.Hosts;
+using System.Threading;
 
 namespace Sitecore.Trekroner
 {
@@ -25,30 +29,38 @@ namespace Sitecore.Trekroner
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IFileSystem, FileSystem>();
+            services.AddScoped<HostsWriter, HostsWriter>();
+            services.AddHostedService<HostsWriterService>();
 
-            var routes = new[]
+            var configuration = new TrekronerProxyConfiguration
             {
-                new ProxyRoute()
+                Domain = "trekroner.test",
+                Services = new[]
                 {
-                    RouteId = "route1",
-                    ClusterId = "cluster1",
-                    Match = new ProxyMatch
-                    {
-                        Path = "{**catch-all}"
-                    }
+                    "cm",
+                    "id",
+                    "xconnect"
                 }
             };
-            var clusters = new[]
+            services.AddSingleton(configuration);
+
+            var routes = configuration.Services.Select(x => new ProxyRoute()
             {
-                new Cluster()
+                RouteId = $"route-{x}",
+                ClusterId = $"cluster-{x}",
+                Match = new ProxyMatch
                 {
-                    Id = "cluster1",
-                    Destinations = new Dictionary<string, Destination>(StringComparer.OrdinalIgnoreCase)
-                    {
-                        { "destination1", new Destination() { Address = "http://sample/" } }
-                    }
+                    Hosts = new[] { $"{x}.{configuration.Domain}" }
                 }
-            };
+            }).ToArray();
+            var clusters = configuration.Services.Select(x => new Cluster()
+            {
+                Id = $"cluster-{x}",
+                Destinations = new Dictionary<string, Destination>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { $"destination-{x}", new Destination() { Address = $"http://{x}/" } }
+                }
+            }).ToArray();
 
             services.AddReverseProxy()
                 .LoadFromMemory(routes, clusters);
@@ -67,6 +79,38 @@ namespace Sitecore.Trekroner
             {
                 endpoints.MapReverseProxy();
             });
+        }
+
+        private class HostsWriterService : IHostedService
+        {
+            private readonly TrekronerProxyConfiguration ProxyConfiguration;
+            private readonly HostsWriter HostsWriter;
+
+            public HostsWriterService(TrekronerProxyConfiguration proxyConfiguration, HostsWriter hostsWriter)
+            {
+                ProxyConfiguration = proxyConfiguration;
+                HostsWriter = hostsWriter;
+            }
+
+            public async Task StartAsync(CancellationToken cancellationToken)
+            {
+                var currentIp = Dns.GetHostEntry(Dns.GetHostName())
+                    .AddressList
+                    .First(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    .ToString();
+                var hostsEntries = ProxyConfiguration.Services.Select(x => new HostsEntry
+                {
+                    IpAddress = currentIp,
+                    Hosts = new[] { $"{x}.{ProxyConfiguration.Domain}" }
+                });
+                Console.WriteLine($"Adding hosts entries for {currentIp}");
+                await HostsWriter.WriteHosts("c:\\driversetc\\hosts", hostsEntries, "trekroner", ".trekroner.bak");
+            }
+
+            public async Task StopAsync(CancellationToken cancellationToken)
+            {
+                await HostsWriter.RemoveAll("c:\\driversetc\\hosts", "trekroner", ".trekroner.bak");
+            }
         }
     }
 }

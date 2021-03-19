@@ -5,6 +5,19 @@ services:
     image: sitecore-trekroner:${VERSION:-latest}
     build:
       context: ../src/Sitecore.Trekoner
-  
-  sample:
+    volumes:
+      - c:\windows\system32\drivers\etc:c:\driversetc
+    #  - .\docker\https:c:\https
+    #environment:
+    #  ASPNETCORE_URLS: "https://+;http://+"
+    #  ASPNETCORE_Kestrel__Certificates__Default__Path: "\\https\\localhost.pfx"
+    #  ASPNETCORE_Kestrel__Certificates__Default__Password: "b"
+
+  cm:
+    image: mcr.microsoft.com/dotnet/samples:aspnetapp
+
+  id:
+    image: mcr.microsoft.com/dotnet/samples:aspnetapp
+
+  xconnect:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
