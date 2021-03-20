@@ -31,8 +31,14 @@ namespace Sitecore.Trekroner.Hosts
                 };
             }
 
+            var existingText = await FileSystem.File.ReadAllTextAsync(config.FilePath);
+            var addNewLine = existingText.Length > 0 && !existingText.EndsWith(Environment.NewLine);
+
             var hostLines = new List<string>();
-            hostLines.Add(Environment.NewLine);
+            if (addNewLine)
+            {
+                hostLines.Add(Environment.NewLine);
+            }
             hostLines.AddRange(
                 entries.Select(entry => $"{entry.IpAddress}\t{string.Join(' ', entry.Hosts)}\t#{config.SourceIdentifier}")
             );

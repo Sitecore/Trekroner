@@ -13,11 +13,15 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
 {
     public class HostsWriterTests
     {
+        private readonly string _existingContent = "# hosts file" + Environment.NewLine;
+
         [Theory, AutoData]
         public async Task WriteHosts_AddsHostEntries(string fileName, string ipAddress, string[] hosts, string sourceIdentifier)
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
+            filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(_existingContent));
             var hostsWriter = new HostsWriter(filesystem.Object);
             var hostEntries = new HostsEntry[]
             {
@@ -38,7 +42,7 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
             filesystem.Verify(f => f.File.AppendAllLinesAsync(
                 It.Is<string>(x => x == fileName),
                 It.Is<IEnumerable<string>>(x =>
-                    x.ToArray()[1] == expectedValue
+                    x.ToArray()[0] == expectedValue
                 ),
                 It.IsAny<CancellationToken>()
             ), Times.Once);
@@ -49,6 +53,8 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
+            filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(_existingContent));
             var hostsWriter = new HostsWriter(filesystem.Object);
 
             await hostsWriter.WriteHosts(entries, new HostsWriterConfiguration
@@ -59,16 +65,18 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
 
             filesystem.Verify(f => f.File.AppendAllLinesAsync(
                 It.Is<string>(x => x == fileName),
-                It.Is<IEnumerable<string>>(x => x.Count() == entries.Length+1),
+                It.Is<IEnumerable<string>>(x => x.Count() == entries.Length),
                 It.IsAny<CancellationToken>()
             ), Times.Once);
         }
 
         [Theory, AutoData]
-        public async Task WriteHosts_AddsNewlineFirst(string fileName, string ipAddress, string[] hosts, string sourceIdentifier)
+        public async Task WriteHosts_AddsNewlineFirst_IfNoNewlineEnding(string fileName, string ipAddress, string[] hosts, string sourceIdentifier)
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
+            filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult("# no newline here"));
             var hostsWriter = new HostsWriter(filesystem.Object);
             var hostEntries = new HostsEntry[]
             {
@@ -240,6 +248,8 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
+            filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(_existingContent));
             var hostsWriter = new HostsWriter(filesystem.Object);
 
             await action(hostsWriter);
@@ -257,6 +267,8 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
+            filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(_existingContent));
             // For Write
             filesystem
                 .Setup(f => f.File.AppendAllLinesAsync(It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
