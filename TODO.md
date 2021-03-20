@@ -20,4 +20,4 @@
 
 ## ISSUES
 * [X] EOL with hosts file
-* [ ] Hosts file - Need to remove before write on startup
+* [X] Hosts file - Need to remove before write on startup

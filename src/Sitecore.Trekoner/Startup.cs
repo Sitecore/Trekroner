@@ -102,6 +102,8 @@ namespace Sitecore.Trekroner
                     Hosts = new[] { $"{x.Name}.{ProxyConfiguration.Domain}" }
                 });
                 Console.WriteLine($"Adding hosts entries for {currentIp}");
+                // remove existing in case of unclean shutdown
+                await HostsWriter.RemoveAll(WriterConfiguration);
                 await HostsWriter.WriteHosts(hostsEntries, WriterConfiguration);
             }
 
