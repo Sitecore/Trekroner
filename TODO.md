@@ -4,8 +4,8 @@
   * https://github.com/RAhnemann/windows-hosts-writer/blob/master/Program.cs
 * [X] Codefig for YARP
 * [X] Custom configuration (for topologies)
-* [ ] YARP configuration builder service + tests
-* [ ] Add configuration from docker-compose + tests
+* [X] YARP configuration builder service + tests
+* [ ] Add tests for Hosts Writer Service
 * [ ] TLS from self-signed cert
 * [ ] Error page for failed proxy
   * [ ] Basic error page for missing container or unable to connect
