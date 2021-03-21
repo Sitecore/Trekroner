@@ -33,23 +33,9 @@ namespace Sitecore.Trekroner
             services.AddHostedService<HostsWriterService>();
 
             var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
-            var routes = proxyConfiguration.Services.Select(x => new ProxyRoute()
-            {
-                RouteId = $"route-{x.Name}",
-                ClusterId = $"cluster-{x.Name}",
-                Match = new ProxyMatch
-                {
-                    Hosts = new[] { $"{x.Name}.{proxyConfiguration.DefaultDomain}" }
-                }
-            }).ToArray();
-            var clusters = proxyConfiguration.Services.Select(x => new Cluster()
-            {
-                Id = $"cluster-{x.Name}",
-                Destinations = new Dictionary<string, Destination>(StringComparer.OrdinalIgnoreCase)
-                {
-                    { $"destination-{x.Name}", new Destination() { Address = $"http://{x.Name}" } }
-                }
-            }).ToArray();
+            var yarpBuilder = new YarpConfigurationBuilder();
+            var routes = yarpBuilder.GetRoutes(proxyConfiguration);
+            var clusters = yarpBuilder.GetClusters(proxyConfiguration);
 
             services.AddReverseProxy()
                 .LoadFromMemory(routes, clusters);
