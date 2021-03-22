@@ -8,6 +8,7 @@ using Xunit;
 using AutoFixture.Xunit2;
 using Sitecore.Trekroner.Hosts;
 using System;
+using Microsoft.Extensions.Configuration;
 
 namespace Sitecore.Trekroner.Tests.HostsWriterTests
 {
@@ -22,7 +23,8 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
             filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(_existingContent));
-            var hostsWriter = new HostsWriter(filesystem.Object);
+            var configuration = GetConfiguration(fileName, sourceIdentifier);
+            var hostsWriter = new HostsWriter(filesystem.Object, configuration);
             var hostEntries = new HostsEntry[]
             {
                 new HostsEntry
@@ -32,11 +34,7 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
                 }
             };
 
-            await hostsWriter.WriteHosts(hostEntries, new HostsWriterConfiguration
-            {
-                FilePath = fileName,
-                SourceIdentifier = sourceIdentifier
-            });
+            await hostsWriter.WriteHosts(hostEntries);
 
             var expectedValue = $"{ipAddress}\t{string.Join(' ', hosts)}\t#{sourceIdentifier}";
             filesystem.Verify(f => f.File.AppendAllLinesAsync(
@@ -55,13 +53,10 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
             filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(_existingContent));
-            var hostsWriter = new HostsWriter(filesystem.Object);
+            var configuration = GetConfiguration(fileName, sourceIdentifier);
+            var hostsWriter = new HostsWriter(filesystem.Object, configuration);
 
-            await hostsWriter.WriteHosts(entries, new HostsWriterConfiguration
-            {
-                FilePath = fileName,
-                SourceIdentifier = sourceIdentifier
-            });
+            await hostsWriter.WriteHosts(entries);
 
             filesystem.Verify(f => f.File.AppendAllLinesAsync(
                 It.Is<string>(x => x == fileName),
@@ -77,7 +72,8 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
             filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult("# no newline here"));
-            var hostsWriter = new HostsWriter(filesystem.Object);
+            var configuration = GetConfiguration(fileName, sourceIdentifier);
+            var hostsWriter = new HostsWriter(filesystem.Object, configuration);
             var hostEntries = new HostsEntry[]
             {
                 new HostsEntry
@@ -87,11 +83,7 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
                 }
             };
 
-            await hostsWriter.WriteHosts(hostEntries, new HostsWriterConfiguration
-            {
-                FilePath = fileName,
-                SourceIdentifier = sourceIdentifier
-            });
+            await hostsWriter.WriteHosts(hostEntries);
 
             filesystem.Verify(f => f.File.AppendAllLinesAsync(
                 It.Is<string>(x => x == fileName),
@@ -103,28 +95,14 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
         }
 
         [Theory, AutoData]
-        public async Task WriteHosts_ThrowsIfConfigNull(HostsEntry entry)
-        {
-            var filesystem = new Mock<IFileSystem>();
-            var hostsWriter = new HostsWriter(filesystem.Object);
-
-            Task result() => hostsWriter.WriteHosts(new[] { entry }, null);
-
-            var exception = await Assert.ThrowsAsync<ArgumentException>(result);
-        }
-
-        [Theory, AutoData]
         public async Task WriteHosts_ThrowsIfFileDoesNotExist(string fileName, HostsEntry entry, string sourceIdentifier)
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(false);
-            var hostsWriter = new HostsWriter(filesystem.Object);
+            var configuration = GetConfiguration(fileName, sourceIdentifier);
+            var hostsWriter = new HostsWriter(filesystem.Object, configuration);
 
-            Task result() => hostsWriter.WriteHosts(new[] { entry }, new HostsWriterConfiguration
-            {
-                FilePath = fileName,
-                SourceIdentifier = sourceIdentifier
-            });
+            Task result() => hostsWriter.WriteHosts(new[] { entry });
 
             var exception = await Assert.ThrowsAsync<HostsWriterException>(result);
             Assert.Equal(HostsWriterError.FileDoesNotExist, exception.HostsWriterError);
@@ -135,13 +113,9 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
         {
             await Test_CreatesAndDeletesBackup(
                 fileName,
+                sourceIdentifier,
                 backupExtension,
-                (hostsWriter) => hostsWriter.WriteHosts(new[] { entry }, new HostsWriterConfiguration
-                {
-                    FilePath = fileName,
-                    SourceIdentifier = sourceIdentifier,
-                    BackupExtension = backupExtension
-                })
+                (hostsWriter) => hostsWriter.WriteHosts(new[] { entry })
             );
         }
 
@@ -150,13 +124,9 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
         {
             await Test_DoesNotDeleteBackupOnError(
                 fileName,
+                sourceIdentifier,
                 backupExtension,
-                (hostsWriter) => hostsWriter.WriteHosts(new[] { entry }, new HostsWriterConfiguration
-                {
-                    FilePath = fileName,
-                    SourceIdentifier = sourceIdentifier,
-                    BackupExtension = backupExtension
-                })
+                (hostsWriter) => hostsWriter.WriteHosts(new[] { entry })
             );
         }
 
@@ -171,13 +141,10 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
                 $"127.0.0.1 {removeHost1} #{sourceIdentifier}",
                 $"127.0.0.1 {removeHost2} #{sourceIdentifier}"
             }));
-            var hostsWriter = new HostsWriter(filesystem.Object);
+            var configuration = GetConfiguration(fileName, sourceIdentifier);
+            var hostsWriter = new HostsWriter(filesystem.Object, configuration);
 
-            await hostsWriter.RemoveAll(new HostsWriterConfiguration
-            {
-                FilePath = fileName,
-                SourceIdentifier = sourceIdentifier
-            });
+            await hostsWriter.RemoveAll();
 
             filesystem.Verify(f => f.File.WriteAllLinesAsync(
                 It.Is<string>(x => x == fileName),
@@ -186,29 +153,15 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
             ), Times.Once);
         }
 
-        [Fact]
-        public async Task RemoveAll_ThrowsIfConfigNull()
-        {
-            var filesystem = new Mock<IFileSystem>();
-            var hostsWriter = new HostsWriter(filesystem.Object);
-
-            Task result() => hostsWriter.RemoveAll(null);
-
-            var exception = await Assert.ThrowsAsync<ArgumentException>(result);
-        }
-
         [Theory, AutoData]
         public async Task RemoveAll_ThrowsIfFileDoesNotExist(string fileName, string sourceIdentifier)
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(false);
-            var hostsWriter = new HostsWriter(filesystem.Object);
+            var configuration = GetConfiguration(fileName, sourceIdentifier);
+            var hostsWriter = new HostsWriter(filesystem.Object, configuration);
 
-            Task result() => hostsWriter.RemoveAll(new HostsWriterConfiguration
-            {
-                FilePath = fileName,
-                SourceIdentifier = sourceIdentifier
-            });
+            Task result() => hostsWriter.RemoveAll();
 
             var exception = await Assert.ThrowsAsync<HostsWriterException>(result);
             Assert.Equal(HostsWriterError.FileDoesNotExist, exception.HostsWriterError);
@@ -219,13 +172,9 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
         {
             await Test_CreatesAndDeletesBackup(
                 fileName,
+                sourceIdentifier,
                 backupExtension,
-                (hostsWriter) => hostsWriter.RemoveAll(new HostsWriterConfiguration
-                {
-                    FilePath = fileName,
-                    SourceIdentifier = sourceIdentifier,
-                    BackupExtension = backupExtension
-                })
+                (hostsWriter) => hostsWriter.RemoveAll()
             );
         }
 
@@ -234,23 +183,20 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
         {
             await Test_DoesNotDeleteBackupOnError(
                 fileName,
+                sourceIdentifier,
                 backupExtension,
-                (hostsWriter) => hostsWriter.RemoveAll(new HostsWriterConfiguration
-                {
-                    FilePath = fileName,
-                    SourceIdentifier = sourceIdentifier,
-                    BackupExtension = backupExtension
-                })
+                (hostsWriter) => hostsWriter.RemoveAll()
             );
         }
 
-        private async Task Test_CreatesAndDeletesBackup(string fileName, string backupExtension, Func<HostsWriter,Task> action)
+        private async Task Test_CreatesAndDeletesBackup(string fileName, string sourceIdentifier, string backupExtension, Func<HostsWriter,Task> action)
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
             filesystem.Setup(f => f.File.ReadAllTextAsync(It.Is<string>(x => x == fileName), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(_existingContent));
-            var hostsWriter = new HostsWriter(filesystem.Object);
+            var configuration = GetConfiguration(fileName, sourceIdentifier, backupExtension);
+            var hostsWriter = new HostsWriter(filesystem.Object, configuration);
 
             await action(hostsWriter);
 
@@ -263,7 +209,7 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
             ), Times.Once);
         }
 
-        private async Task Test_DoesNotDeleteBackupOnError(string fileName, string backupExtension, Func<HostsWriter, Task> action)
+        private async Task Test_DoesNotDeleteBackupOnError(string fileName, string sourceIdentifier, string backupExtension, Func<HostsWriter, Task> action)
         {
             var filesystem = new Mock<IFileSystem>();
             filesystem.Setup(f => f.File.Exists(It.Is<string>(x => x == fileName))).Returns(true);
@@ -277,7 +223,8 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
             filesystem
                 .Setup(f => f.File.WriteAllLinesAsync(It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception());
-            var hostsWriter = new HostsWriter(filesystem.Object);
+            var configuration = GetConfiguration(fileName, sourceIdentifier, backupExtension);
+            var hostsWriter = new HostsWriter(filesystem.Object, configuration);
 
             var exception = await Assert.ThrowsAsync<Exception>(() => action(hostsWriter));
             filesystem.Verify(f => f.File.Copy(
@@ -287,6 +234,21 @@ namespace Sitecore.Trekroner.Tests.HostsWriterTests
             filesystem.Verify(f => f.File.Delete(
                 It.Is<string>(x => x.EndsWith(backupExtension))
             ), Times.Never);
+        }
+
+        private IConfiguration GetConfiguration(string filePath, string sourceIdentifier, string backupExtension = null)
+        {
+            var key = HostsWriterConfiguration.Key;
+            var inMemorySettings = new Dictionary<string, string>
+            {
+                {$"{key}:FilePath", filePath},
+                {$"{key}:SourceIdentifier", sourceIdentifier },
+                {$"{key}:BackupExtension", backupExtension }
+            };
+
+            return new ConfigurationBuilder()
+                .AddInMemoryCollection(inMemorySettings)
+                .Build();
         }
 
     }

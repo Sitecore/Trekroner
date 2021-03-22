@@ -6,9 +6,9 @@ using Sitecore.Trekroner.Hosts;
 
 namespace Sitecore.Trekroner.Hosts
 {
-    interface IHostsWriter
+    public interface IHostsWriter
     {
-        Task WriteHosts(IEnumerable<HostsEntry> hosts, HostsWriterConfiguration config);
-        Task RemoveAll(HostsWriterConfiguration config);
+        Task WriteHosts(IEnumerable<HostsEntry> hosts);
+        Task RemoveAll();
     }
 }

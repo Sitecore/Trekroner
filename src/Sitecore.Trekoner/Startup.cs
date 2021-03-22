@@ -14,6 +14,8 @@ using Sitecore.Trekroner.Hosts;
 using System.Threading;
 using Sitecore.Trekroner.Proxy;
 using Microsoft.ReverseProxy.Service;
+using Sitecore.Trekroner.Services;
+using Sitecore.Trekroner.Net;
 
 namespace Sitecore.Trekroner
 {
@@ -29,7 +31,8 @@ namespace Sitecore.Trekroner
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IFileSystem, FileSystem>();
-            services.AddScoped<HostsWriter, HostsWriter>();
+            services.AddScoped<IHostsWriter, HostsWriter>();
+            services.AddScoped<IIpAddressResolver, IpAddressResolver>();
             services.AddHostedService<HostsWriterService>();
 
             var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
@@ -54,42 +57,6 @@ namespace Sitecore.Trekroner
             {
                 endpoints.MapReverseProxy();
             });
-        }
-
-        private class HostsWriterService : IHostedService
-        {
-            private readonly HostsWriterConfiguration WriterConfiguration;
-            private readonly IProxyConfigProvider YarpConfigurationProvider;
-            private readonly HostsWriter HostsWriter;
-
-            public HostsWriterService(IConfiguration configuration, IProxyConfigProvider yarpConfigurationProvider, HostsWriter hostsWriter)
-            {
-                WriterConfiguration = configuration.GetSection(HostsWriterConfiguration.Key).Get<HostsWriterConfiguration>();
-                YarpConfigurationProvider = yarpConfigurationProvider;
-                HostsWriter = hostsWriter;
-            }
-
-            public async Task StartAsync(CancellationToken cancellationToken)
-            {
-                var currentIp = Dns.GetHostEntry(Dns.GetHostName())
-                    .AddressList
-                    .First(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                    .ToString();
-                var hostsEntries = YarpConfigurationProvider.GetConfig().Routes.Select(x => new HostsEntry
-                {
-                    IpAddress = currentIp,
-                    Hosts = x.Match.Hosts
-                });
-                Console.WriteLine($"Adding hosts entries for {currentIp}");
-                // remove existing in case of unclean shutdown
-                await HostsWriter.RemoveAll(WriterConfiguration);
-                await HostsWriter.WriteHosts(hostsEntries, WriterConfiguration);
-            }
-
-            public async Task StopAsync(CancellationToken cancellationToken)
-            {
-                await HostsWriter.RemoveAll(WriterConfiguration);
-            }
         }
     }
 }
