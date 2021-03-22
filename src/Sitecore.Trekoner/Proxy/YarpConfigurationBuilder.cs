@@ -28,9 +28,20 @@ namespace Sitecore.Trekroner.Proxy
                 Id = $"cluster-{x.Name}",
                 Destinations = new Dictionary<string, Destination>(StringComparer.OrdinalIgnoreCase)
                 {
-                    { $"destination-{x.Name}", new Destination() { Address = $"http://{x.Name}" } }
+                    { $"destination-{x.Name}", new Destination() { Address = GetDestination(x) } }
                 }
             }).ToArray();
+        }
+
+        private string GetDestination(ServiceConfiguration service)
+        {
+            var builder = new UriBuilder("http", service.Name);
+            if (service.TargetPort.HasValue)
+            {
+                builder.Port = service.TargetPort.Value;
+            }
+            Console.WriteLine($"Added destination {builder}");
+            return builder.ToString();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using AutoFixture;
 using AutoFixture.Xunit2;
 using Sitecore.Trekroner.Proxy;
 using Xunit;
@@ -78,8 +79,24 @@ namespace Sitecore.Trekroner.Tests.Proxy
             Assert.Equal(destinations.Count(), destinations.Select(x => x.Key).Distinct().Count());
         }
 
+        [Fact]
+        public void GetClusters_CreatesDestinationUrlWithServiceName()
+        {
+            var fixture = new Fixture();
+            var service = fixture.Build<ServiceConfiguration>().Without(x => x.TargetPort).Create();
+            var proxyConfiguration = new ProxyConfiguration { Services = new[] { service } };
+            var builder = new YarpConfigurationBuilder();
+
+            var clusters = builder.GetClusters(proxyConfiguration);
+
+            Assert.Equal(
+                $"http://{service.Name}/",
+                clusters.FirstOrDefault().Destinations.FirstOrDefault().Value.Address
+            );
+        }
+
         [Theory, AutoData]
-        public void GetClusters_CreatesDestinationUrlWithServiceName(ServiceConfiguration service)
+        public void GetClusters_CreatesDestinationUrlWithServiceNameAndPort(ServiceConfiguration service)
         {
             var proxyConfiguration = new ProxyConfiguration { Services = new[] { service } };
             var builder = new YarpConfigurationBuilder();
@@ -87,7 +104,7 @@ namespace Sitecore.Trekroner.Tests.Proxy
             var clusters = builder.GetClusters(proxyConfiguration);
 
             Assert.Equal(
-                $"http://{service.Name}",
+                $"http://{service.Name}:{service.TargetPort}/",
                 clusters.FirstOrDefault().Destinations.FirstOrDefault().Value.Address
             );
         }
