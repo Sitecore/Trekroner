@@ -5,7 +5,8 @@
 * [X] Codefig for YARP
 * [X] Custom configuration (for topologies)
 * [X] YARP configuration builder service + tests
-* [ ] Add tests for Hosts Writer Service
+* [X] Add tests for Hosts Writer Service
+* [X] Support alternate ports
 * [ ] TLS from self-signed cert
 * [ ] Error page for failed proxy
   * [ ] Basic error page for missing container or unable to connect
@@ -17,6 +18,7 @@
     * Use content type headers
 * [ ] Status page
   * [ ] Status for hosts writer
+* [ ] TCP Proxy
 * [ ] Container actions on status page (e.g. restart)
 * [ ] Notifications of issues via browser?
   * Service worker?
