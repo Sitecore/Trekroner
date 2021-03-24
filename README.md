@@ -52,5 +52,11 @@ Do you really need more containers in your Sitecore environment? 😅
 
 Seriously though, there are some benefits to combining these. The hosts writer can be smart about host names that need to be proxied, and the status check / error reporting can be integrated into the proxy error handling. As it's intended for development usage, independent scaling isn't a concern.
 
+### What is a 'Trekroner'?
+[Trekroner Sea Fort](https://en.wikipedia.org/wiki/Trekroner_Fort) ("three crowns") is a sea fort outside Copenhagen, which should look familiar to many Sitecore developers, as the home of the lighthouse which graced the Sitecore Desktop for many years.
+
+You can check out a [photo tour of Trekroner Fort](http://www.codeflood.net/blog/2016/05/01/trekroner-fort/) by Sitecore architect Alistair Deneys (@adeneys).
+
+
 ## Contributing
 TODO
