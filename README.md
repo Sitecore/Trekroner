@@ -19,7 +19,7 @@ It does this via:
 
 ✅ A `hosts` file writer which maps the IP of the proxy container to needed host names (and removes the entries on shutdown).
 
-✅ Use of Kestrel's built-in support for `pfx` certificates, allowing generation of HTTPS certificates via PowerShell.
+🟩 _(TODO)_ Use of Kestrel's built-in support for `pfx` certificates, allowing generation of HTTPS certificates via PowerShell.
 
 🟩 _(TODO)_ Built-in container status reporting and log viewing when proxying fails.
 
