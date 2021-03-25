@@ -10,11 +10,11 @@ services:
       - .\docker\https:c:\https
     environment:
       Proxy__DefaultDomain: ${SOLUTION_DOMAIN}
-      Proxy__Services__0__Name: "cm"
-      Proxy__Services__1__Name: "id"
-      Proxy__Services__2__Name: "xconnect"
-      Proxy__Services__3__Name: "solr"
-      Proxy__Services__3__TargetPort: "8983"
+      Proxy__Services__cm__Name: "cm"
+      Proxy__Services__id__Name: "id"
+      Proxy__Services__xconnect__Name: "xconnect"
+      Proxy__Services__solr__Name: "solr"
+      Proxy__Services__solr__TargetPort: "8983"
       HostsWriter__FilePath: "c:\\driversetc\\hosts"
       HostsWriter__SourceIdentifier: "trekroner ${SOLUTION_DOMAIN}"
       HostsWriter__BackupExtension: ".trekroner.${SOLUTION_DOMAIN}.bak"

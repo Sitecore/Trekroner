@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AutoFixture;
 using AutoFixture.Xunit2;
 using Sitecore.Trekroner.Proxy;
@@ -9,18 +10,18 @@ namespace Sitecore.Trekroner.Tests.Proxy
     public class YarpConfigurationBuilderTests
     {
         [Theory, AutoData]
-        public void GetRoutes_CreatesRouteForEachService(ServiceConfiguration[] services)
+        public void GetRoutes_CreatesRouteForEachService(Dictionary<string, ServiceConfiguration> services)
         {
             var proxyConfiguration = new ProxyConfiguration { Services = services };
             var builder = new YarpConfigurationBuilder();
 
             var routes = builder.GetRoutes(proxyConfiguration);
 
-            Assert.Equal(services.Length, routes.Count);
+            Assert.Equal(services.Count, routes.Count);
         }
 
         [Theory, AutoData]
-        public void GetRoutes_CreatesUniqueRouteIds(ServiceConfiguration[] services)
+        public void GetRoutes_CreatesUniqueRouteIds(Dictionary<string, ServiceConfiguration> services)
         {
             var proxyConfiguration = new ProxyConfiguration { Services = services };
             var builder = new YarpConfigurationBuilder();
@@ -36,7 +37,7 @@ namespace Sitecore.Trekroner.Tests.Proxy
             var proxyConfiguration = new ProxyConfiguration
             {
                 DefaultDomain = domain,
-                Services = new[] { service }
+                Services = new Dictionary<string,ServiceConfiguration> { { service.Name, service } }
             };
             var builder = new YarpConfigurationBuilder();
 
@@ -46,18 +47,18 @@ namespace Sitecore.Trekroner.Tests.Proxy
         }
 
         [Theory, AutoData]
-        public void GetClusters_CreatesClusterForEveryService(ServiceConfiguration[] services)
+        public void GetClusters_CreatesClusterForEveryService(Dictionary<string, ServiceConfiguration> services)
         {
             var proxyConfiguration = new ProxyConfiguration { Services = services };
             var builder = new YarpConfigurationBuilder();
 
             var clusters = builder.GetClusters(proxyConfiguration);
 
-            Assert.Equal(services.Length, clusters.Count);
+            Assert.Equal(services.Count, clusters.Count);
         }
 
         [Theory, AutoData]
-        public void GetClusters_CreatesUniqueClusterIds(ServiceConfiguration[] services)
+        public void GetClusters_CreatesUniqueClusterIds(Dictionary<string, ServiceConfiguration> services)
         {
             var proxyConfiguration = new ProxyConfiguration { Services = services };
             var builder = new YarpConfigurationBuilder();
@@ -68,7 +69,7 @@ namespace Sitecore.Trekroner.Tests.Proxy
         }
 
         [Theory, AutoData]
-        public void GetClusters_CreatesUniqueDestinationKeys(ServiceConfiguration[] services)
+        public void GetClusters_CreatesUniqueDestinationKeys(Dictionary<string, ServiceConfiguration> services)
         {
             var proxyConfiguration = new ProxyConfiguration { Services = services };
             var builder = new YarpConfigurationBuilder();
@@ -84,7 +85,7 @@ namespace Sitecore.Trekroner.Tests.Proxy
         {
             var fixture = new Fixture();
             var service = fixture.Build<ServiceConfiguration>().Without(x => x.TargetPort).Create();
-            var proxyConfiguration = new ProxyConfiguration { Services = new[] { service } };
+            var proxyConfiguration = new ProxyConfiguration { Services = new Dictionary<string, ServiceConfiguration> { { service.Name, service } } };
             var builder = new YarpConfigurationBuilder();
 
             var clusters = builder.GetClusters(proxyConfiguration);
@@ -98,7 +99,7 @@ namespace Sitecore.Trekroner.Tests.Proxy
         [Theory, AutoData]
         public void GetClusters_CreatesDestinationUrlWithServiceNameAndPort(ServiceConfiguration service)
         {
-            var proxyConfiguration = new ProxyConfiguration { Services = new[] { service } };
+            var proxyConfiguration = new ProxyConfiguration { Services = new Dictionary<string, ServiceConfiguration> { { service.Name, service } } };
             var builder = new YarpConfigurationBuilder();
 
             var clusters = builder.GetClusters(proxyConfiguration);
@@ -112,7 +113,7 @@ namespace Sitecore.Trekroner.Tests.Proxy
         [Theory, AutoData]
         public void GetRoutes_GetClusters_MatchClusterIds(ServiceConfiguration service)
         {
-            var proxyConfiguration = new ProxyConfiguration { Services = new[] { service } };
+            var proxyConfiguration = new ProxyConfiguration { Services = new Dictionary<string, ServiceConfiguration> { { service.Name, service } } };
             var builder = new YarpConfigurationBuilder();
 
             var routes = builder.GetRoutes(proxyConfiguration);
