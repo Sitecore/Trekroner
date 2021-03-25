@@ -7,7 +7,7 @@
 * [X] YARP configuration builder service + tests
 * [X] Add tests for Hosts Writer Service
 * [X] Support alternate ports
-* [ ] TLS from self-signed cert
+* [X] TLS from self-signed cert
 * [ ] Error page for failed proxy
   * [ ] Basic error page for missing container or unable to connect
   * [ ] Add container logs to error page
