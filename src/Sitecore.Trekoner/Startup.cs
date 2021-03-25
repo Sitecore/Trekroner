@@ -16,6 +16,7 @@ using Sitecore.Trekroner.Proxy;
 using Microsoft.ReverseProxy.Service;
 using Sitecore.Trekroner.Services;
 using Sitecore.Trekroner.Net;
+using Microsoft.ReverseProxy.Abstractions.Config;
 
 namespace Sitecore.Trekroner
 {
@@ -41,7 +42,12 @@ namespace Sitecore.Trekroner
             var clusters = yarpBuilder.GetClusters(proxyConfiguration);
 
             services.AddReverseProxy()
-                .LoadFromMemory(routes, clusters);
+                .LoadFromMemory(routes, clusters)
+                .AddTransforms(builderContext =>
+                {
+                    builderContext.AddXForwarded();
+                    builderContext.UseOriginalHost = true;
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +58,7 @@ namespace Sitecore.Trekroner
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseHsts();
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
