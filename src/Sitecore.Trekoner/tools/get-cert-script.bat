@@ -1,0 +1,1 @@
+copy c:\New-HttpsCertificate.ps1 c:\https

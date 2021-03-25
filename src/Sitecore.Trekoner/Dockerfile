@@ -11,6 +11,16 @@ RUN dotnet publish -c Release -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:5.0
+
+# Certificate tools for the host
+WORKDIR /
+COPY ./tools .
+
+# Our build output
 WORKDIR /app
 COPY --from=build /app/out .
+
+# Required for HTTPS due to https://github.com/dotnet/dotnet-docker/issues/1048
+USER ContainerAdministrator
+
 ENTRYPOINT ["dotnet", "Sitecore.Trekroner.dll"]

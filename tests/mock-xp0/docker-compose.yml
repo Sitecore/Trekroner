@@ -4,23 +4,23 @@ services:
   ingress:
     image: sitecore-trekroner:${VERSION:-latest}
     build:
-      context: ../src/Sitecore.Trekoner
+      context: ../../src/Sitecore.Trekoner
     volumes:
       - c:\windows\system32\drivers\etc:c:\driversetc
-    #  - .\docker\https:c:\https
+      - .\docker\https:c:\https
     environment:
-      Proxy__DefaultDomain: "basic-test.test"
+      Proxy__DefaultDomain: ${SOLUTION_DOMAIN}
       Proxy__Services__0__Name: "cm"
       Proxy__Services__1__Name: "id"
       Proxy__Services__2__Name: "xconnect"
       Proxy__Services__3__Name: "solr"
       Proxy__Services__3__TargetPort: "8983"
       HostsWriter__FilePath: "c:\\driversetc\\hosts"
-      HostsWriter__SourceIdentifier: "hostswriter basic-test"
-      HostsWriter__BackupExtension: ".hostswriter.basic-test.bak"
-    #  ASPNETCORE_URLS: "https://+;http://+"
-    #  ASPNETCORE_Kestrel__Certificates__Default__Path: "\\https\\localhost.pfx"
-    #  ASPNETCORE_Kestrel__Certificates__Default__Password: "b"
+      HostsWriter__SourceIdentifier: "trekroner ${SOLUTION_DOMAIN}"
+      HostsWriter__BackupExtension: ".trekroner.${SOLUTION_DOMAIN}.bak"
+      ASPNETCORE_URLS: "https://+;http://+"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "\\https\\_.${SOLUTION_DOMAIN}.pfx"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "b"
 
   cm:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
