@@ -16,7 +16,6 @@ namespace Sitecore.Trekroner.Tests.Services
 {
     public class HostsWriterServiceTests
     {
-        //Start uses current IP
         [Theory, AutoData]
         public async Task StartAsync_WritesCurrentIp(IPAddress ip, string host)
         {
