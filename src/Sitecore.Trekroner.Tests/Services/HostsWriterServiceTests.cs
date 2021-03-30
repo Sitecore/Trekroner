@@ -9,7 +9,7 @@ using Microsoft.ReverseProxy.Service;
 using Moq;
 using Sitecore.Trekroner.Hosts;
 using Sitecore.Trekroner.Net;
-using Sitecore.Trekroner.Services;
+using Sitecore.Trekroner.HostedServices;
 using Xunit;
 
 namespace Sitecore.Trekroner.Tests.Services

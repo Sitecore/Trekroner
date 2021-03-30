@@ -1,22 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO.Abstractions;
-using Microsoft.ReverseProxy.Abstractions;
-using System.Net;
 using Sitecore.Trekroner.Hosts;
-using System.Threading;
 using Sitecore.Trekroner.Proxy;
-using Microsoft.ReverseProxy.Service;
-using Sitecore.Trekroner.Services;
+using Sitecore.Trekroner.HostedServices;
 using Sitecore.Trekroner.Net;
 using Microsoft.ReverseProxy.Abstractions.Config;
+using Sitecore.Trekroner.Protos;
 
 namespace Sitecore.Trekroner
 {
@@ -48,6 +41,9 @@ namespace Sitecore.Trekroner
                     builderContext.AddXForwarded();
                     builderContext.UseOriginalHost = true;
                 });
+
+            services.AddGrpc();
+            services.AddGrpcReflection();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,10 +55,13 @@ namespace Sitecore.Trekroner
             }
 
             app.UseHsts();
+
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapReverseProxy();
+                endpoints.MapGrpcService<ContainerOperationsService>();
+                endpoints.MapGrpcReflectionService();
+                //endpoints.MapReverseProxy();
             });
         }
     }

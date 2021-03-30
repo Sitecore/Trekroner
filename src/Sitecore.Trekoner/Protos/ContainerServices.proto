@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option csharp_namespace = "Sitecore.Trekroner.Protos";
+
+package containerServices;
+
+service ContainerOperations {
+	rpc InspectContainer (InspectContainerRequest) returns (InspectContainerResponse);
+}
+
+message InspectContainerRequest {
+	string id = 1;
+}
+
+message InspectContainerResponse {
+	string id = 1;
+	ContainerState state = 2;
+}
+
+message ContainerState {
+	string status = 1;
+	bool running = 2;
+	bool paused = 3;
+	bool restarting = 4;
+	bool oomKilled = 5;
+	bool dead = 6;
+	int64 pid = 7;
+	int64 exitCode = 8;
+	string error = 9;
+	string startedAt = 10;
+	string finishedAt = 11;
+	//ContainerHealth health = 12;
+}
+
+/*
+message ContainerHealth {
+	string status = 1;
+	int64 failingStreak = 2;
+	repeated ContainerHealthcheckResult log = 3;
+
+}
+
+message ContainerHealthcheckResult {
+	Timestamp start = 1;
+	Timestamp end = 2;
+	int64 exitCode = 3;
+	string output = 4;
+}
+*/

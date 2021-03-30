@@ -9,7 +9,7 @@ using Microsoft.ReverseProxy.Service;
 using Sitecore.Trekroner.Hosts;
 using Sitecore.Trekroner.Net;
 
-namespace Sitecore.Trekroner.Services
+namespace Sitecore.Trekroner.HostedServices
 {
     public class HostsWriterService : IHostedService
     {

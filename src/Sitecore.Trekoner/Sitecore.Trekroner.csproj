@@ -5,8 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup> 
+    <PackageReference Include="Docker.DotNet" Version="3.125.4" /> 
+    <PackageReference Include="Grpc.AspNetCore" Version="2.36.0" /> 
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.36.0" /> 
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.36.0" /> 
     <PackageReference Include="Microsoft.ReverseProxy" Version="1.0.0-preview.9.*" /> 
     <PackageReference Include="System.IO.Abstractions" Version="13.2.24" />
-  </ItemGroup> 
+  </ItemGroup>
 
+  <ItemGroup>
+    <Protobuf Include="Protos\ContainerServices.proto" />
+  </ItemGroup>
+  
 </Project>

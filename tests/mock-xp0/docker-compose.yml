@@ -8,6 +8,9 @@ services:
     volumes:
       - c:\windows\system32\drivers\etc:c:\driversetc
       - .\docker\https:c:\https
+      - type: npipe
+        source: '\\.\pipe\docker_engine'
+        target: '\\.\pipe\docker_engine'
     environment:
       Proxy__DefaultDomain: ${SOLUTION_DOMAIN}
       Proxy__Services__cm__Name: "cm"
