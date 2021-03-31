@@ -42,6 +42,7 @@ namespace Sitecore.Trekroner
                     builderContext.UseOriginalHost = true;
                 });
 
+            services.AddRazorPages();
             services.AddGrpc();
             services.AddGrpcReflection();
         }
@@ -55,13 +56,24 @@ namespace Sitecore.Trekroner
             }
 
             app.UseHsts();
+            
+
+            var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
+            app.MapWhen(x => x.Request.Host.Host.Equals(proxyConfiguration.DefaultDomain), statusApp =>
+            {
+                statusApp.UseRouting();
+                statusApp.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapRazorPages();
+                    endpoints.MapGrpcService<ContainerOperationsService>();
+                    endpoints.MapGrpcReflectionService();
+                });
+            });
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<ContainerOperationsService>();
-                endpoints.MapGrpcReflectionService();
-                //endpoints.MapReverseProxy();
+                endpoints.MapReverseProxy();
             });
         }
     }
