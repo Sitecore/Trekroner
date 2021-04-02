@@ -59,8 +59,18 @@ if (-not $rootCert) {
     }
 }
 
+$DnsName = $Domain
+if ($Domain.StartsWith("*.")) {
+    # Wildcart cert, issue it for the base domain as well.
+    # Passing an array to DnsName will set the 'subject alternative name'
+    $DnsName = @(
+        $Domain,
+        $Domain.Substring(2)
+    );
+}
+
 $certParams = $certBaseParams.Clone()
-$certParams.DnsName = $Domain
+$certParams.DnsName = $DnsName
 $certParams.Subject = "CN=Sitecore Trekroner $Domain, O=DO_NOT_TRUST, OU=Created by https://www.github.com/Sitecore/Trekroner"
 $certParams.Signer = $rootCert
 
