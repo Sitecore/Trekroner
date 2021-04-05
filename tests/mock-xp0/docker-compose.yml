@@ -4,7 +4,7 @@ services:
   ingress:
     image: sitecore-trekroner:${VERSION:-latest}
     build:
-      context: ../../src/Sitecore.Trekoner
+      context: ../../src
     volumes:
       - c:\windows\system32\drivers\etc:c:\driversetc
       - .\docker\https:c:\https

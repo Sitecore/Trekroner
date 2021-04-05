@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Docker.DotNet;
 
-namespace Sitecore.Trekroner.Protos
+namespace Sitecore.Trekroner.ContainerService
 {
     public class ContainerOperationsService : ContainerOperations.ContainerOperationsBase
     {

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "Sitecore.Trekroner.Protos";
+option csharp_namespace = "Sitecore.Trekroner.ContainerService";
 
 package containerServices;
 

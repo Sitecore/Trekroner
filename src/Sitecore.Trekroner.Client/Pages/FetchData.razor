@@ -1,0 +1,29 @@
+﻿@page "/fetchdata/{ContainerId}"
+@inject ContainerOperations.ContainerOperationsClient ContainerOperationsClient
+
+<h1>Container Status</h1>
+
+@if (inspectContainerResponse == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>
+        Running? @inspectContainerResponse.State.Running
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string ContainerId { get; set; }
+
+    private InspectContainerResponse inspectContainerResponse;
+    protected override async Task OnInitializedAsync()
+    {
+        inspectContainerResponse = (await ContainerOperationsClient.InspectContainerAsync(new InspectContainerRequest
+        {
+            Id = ContainerId
+        }));
+    }
+}

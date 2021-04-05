@@ -8,8 +8,8 @@ using Sitecore.Trekroner.Hosts;
 using Sitecore.Trekroner.Proxy;
 using Sitecore.Trekroner.HostedServices;
 using Sitecore.Trekroner.Net;
+using Sitecore.Trekroner.ContainerService;
 using Microsoft.ReverseProxy.Abstractions.Config;
-using Sitecore.Trekroner.Protos;
 
 namespace Sitecore.Trekroner
 {
@@ -53,20 +53,29 @@ namespace Sitecore.Trekroner
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseWebAssemblyDebugging();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");               
             }
 
             app.UseHsts();
+            app.UseHttpsRedirection();
             
-
             var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
             app.MapWhen(x => x.Request.Host.Host.Equals(proxyConfiguration.DefaultDomain), statusApp =>
             {
+                statusApp.UseBlazorFrameworkFiles();
+                statusApp.UseStaticFiles();
                 statusApp.UseRouting();
+                statusApp.UseGrpcWeb();
                 statusApp.UseEndpoints(endpoints =>
                 {
                     endpoints.MapRazorPages();
-                    endpoints.MapGrpcService<ContainerOperationsService>();
                     endpoints.MapGrpcReflectionService();
+                    endpoints.MapGrpcService<ContainerOperationsService>().EnableGrpcWeb();
+                    endpoints.MapFallbackToFile("index.html");
                 });
             });
 
