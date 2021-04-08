@@ -1,4 +1,4 @@
-﻿@page "/fetchdata/{ContainerId}"
+﻿@page "/status/{ServiceName}"
 @inject ContainerOperations.ContainerOperationsClient ContainerOperationsClient
 
 <h1>Container Status</h1>
@@ -16,14 +16,14 @@ else
 
 @code {
     [Parameter]
-    public string ContainerId { get; set; }
+    public string ServiceName { get; set; }
 
     private InspectContainerResponse inspectContainerResponse;
     protected override async Task OnInitializedAsync()
     {
         inspectContainerResponse = (await ContainerOperationsClient.InspectContainerAsync(new InspectContainerRequest
         {
-            Id = ContainerId
+            Name = ServiceName
         }));
     }
 }

@@ -9,7 +9,7 @@ service ContainerOperations {
 }
 
 message InspectContainerRequest {
-	string id = 1;
+	string name = 1;
 }
 
 message InspectContainerResponse {
