@@ -34,14 +34,14 @@ namespace Sitecore.Trekroner.HostedServices
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             var currentIp = IpResolver.GetCurrentIp().ToString();
-            var hostsEntries = YarpConfigurationProvider.GetConfig().Routes.Select(x => new HostsEntry
+            var hostsEntries = YarpConfigurationProvider.GetConfig().Routes?.Select(x => new HostsEntry
             {
                 IpAddress = currentIp,
                 Hosts = x.Match.Hosts
             });
 
             var proxyConfig = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
-            hostsEntries = hostsEntries.Concat(new[]
+            hostsEntries = hostsEntries?.Concat(new[]
             {
                 new HostsEntry
                 {
@@ -52,7 +52,10 @@ namespace Sitecore.Trekroner.HostedServices
             Console.WriteLine($"Adding hosts entries for {currentIp}");
             // remove existing in case of unclean shutdown
             await HostsWriter.RemoveAll();
-            await HostsWriter.WriteHosts(hostsEntries);
+            if (hostsEntries != null)
+            {
+                await HostsWriter.WriteHosts(hostsEntries);
+            }
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

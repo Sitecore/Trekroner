@@ -1,3 +1,13 @@
+# Need to use servercore for watch to work due to https://github.com/dotnet/aspnetcore/issues/22797
+FROM mcr.microsoft.com/dotnet/sdk:5.0-windowsservercore-ltsc2019 as debug
+WORKDIR /src
+ENV DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER=true
+ENV ASPNETCORE_ENVIRONMENT=Development
+EXPOSE 80
+# Required for HTTPS due to https://github.com/dotnet/dotnet-docker/issues/1048
+USER ContainerAdministrator
+ENTRYPOINT ["dotnet", "watch", "-v",  "run", "--project", ".\\Sitecore.Trekoner", "--no-launch-profile"]
+
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /app
 

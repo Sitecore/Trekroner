@@ -24,9 +24,9 @@ namespace Sitecore.Trekroner
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<IFileSystem, FileSystem>();
-            services.AddScoped<IHostsWriter, HostsWriter>();
-            services.AddScoped<IIpAddressResolver, IpAddressResolver>();
+            services.AddSingleton<IFileSystem, FileSystem>();
+            services.AddSingleton<IHostsWriter, HostsWriter>();
+            services.AddSingleton<IIpAddressResolver, IpAddressResolver>();
             services.AddHostedService<HostsWriterService>();
 
             var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
@@ -62,7 +62,7 @@ namespace Sitecore.Trekroner
 
             app.UseHsts();
             app.UseHttpsRedirection();
-            
+
             var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
             app.MapWhen(x => x.Request.Host.Host.Equals(proxyConfiguration.DefaultDomain), statusApp =>
             {
