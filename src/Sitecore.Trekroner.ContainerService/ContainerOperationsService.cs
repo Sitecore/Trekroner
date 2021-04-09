@@ -96,6 +96,7 @@ namespace Sitecore.Trekroner.ContainerService
 
             return await DockerClient.Containers.ListContainersAsync(new Docker.DotNet.Models.ContainersListParameters
             {
+                All = true,
                 Filters = new Dictionary<string, IDictionary<string, bool>>
                 {
                     {
