@@ -9,9 +9,57 @@
 }
 else
 {
-    <div>
-        Running? @inspectContainerResponse.State.Running
-    </div>
+    <h2>State</h2>
+    <table class="table">
+        <tbody>
+            <tr>
+                <th scope="row">Status</th>
+                <td>@inspectContainerResponse.State.Status</td>
+            </tr>
+            <tr>
+                <th scope="row">Started At</th>
+                <td>@inspectContainerResponse.State.StartedAt</td>
+            </tr>
+
+            @if (!inspectContainerResponse.State.Running)
+            {
+                <tr>
+                    <th scope="row">Exit Code</th>
+                    <td>@inspectContainerResponse.State.ExitCode</td>
+                </tr>
+                <tr>
+                    <th scope="row">Error</th>
+                    <td>@inspectContainerResponse.State.Error</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (inspectContainerResponse.State.Health != null)
+    {
+        <h2>Healthchecks</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                    <th scope="col">Exit Code</th>
+                    <th scope="col">Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in inspectContainerResponse.State?.Health?.Log)
+                {
+                    <tr>
+                        <td>@log.Start.ToDateTime()</td>
+                        <td>@log.End.ToDateTime()</td>
+                        <td>@log.ExitCode</td>
+                        <td>@log.Output</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 
 @code {

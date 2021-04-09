@@ -27,14 +27,23 @@ services:
 
   cm:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost/"]
 
   id:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
+    entrypoint: ["cmd.exe", "/C", "echo Oooops & exit -1"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost/"]
 
   xconnect:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost/FAIL"]
 
   solr:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
     environment:
       ASPNETCORE_URLS: "http://*:8983"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost:8983/"]

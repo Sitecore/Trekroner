@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Sitecore.Trekroner.ContainerService
 {
@@ -76,6 +77,20 @@ namespace Sitecore.Trekroner.ContainerService
                     Error = result.State.Error,
                     StartedAt = result.State.StartedAt,
                     FinishedAt = result.State.FinishedAt,
+                    Health = new ContainerHealth
+                    {
+                        Status = result.State.Health?.Status ?? string.Empty,
+                        FailingStreak = result.State.Health?.FailingStreak ?? 0,
+                        Log = {
+                            result.State.Health?.Log?.Select(x => new ContainerHealthcheckResult
+                            {
+                                Start = Timestamp.FromDateTime(x.Start.ToUniversalTime()),
+                                End = Timestamp.FromDateTime(x.End.ToUniversalTime()),
+                                ExitCode = x.ExitCode,
+                                Output = x.Output ?? string.Empty
+                            }) ?? Array.Empty<ContainerHealthcheckResult>()
+                        }
+                    }
                 }
             };
         }

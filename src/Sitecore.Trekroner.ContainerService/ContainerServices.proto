@@ -1,7 +1,6 @@
 syntax = "proto3";
-
+import "google/protobuf/timestamp.proto";
 option csharp_namespace = "Sitecore.Trekroner.ContainerService";
-
 package containerServices;
 
 service ContainerOperations {
@@ -49,10 +48,9 @@ message ContainerState {
 	string error = 9;
 	string startedAt = 10;
 	string finishedAt = 11;
-	//ContainerHealth health = 12;
+	ContainerHealth health = 12;
 }
 
-/*
 message ContainerHealth {
 	string status = 1;
 	int64 failingStreak = 2;
@@ -61,9 +59,8 @@ message ContainerHealth {
 }
 
 message ContainerHealthcheckResult {
-	Timestamp start = 1;
-	Timestamp end = 2;
+	google.protobuf.Timestamp start = 1;
+	google.protobuf.Timestamp end = 2;
 	int64 exitCode = 3;
 	string output = 4;
 }
-*/
