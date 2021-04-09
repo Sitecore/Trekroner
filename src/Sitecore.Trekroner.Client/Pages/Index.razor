@@ -1,7 +1,44 @@
 ﻿@page "/"
+@inject ContainerOperations.ContainerOperationsClient ContainerOperationsClient
 
-<h1>Hello, world!</h1>
+@if (listContainersResponse == null)
+{
+    <p><em>Loading...</em></p>
+} else
+{
+    <h1>@listContainersResponse.ProjectName</h1>
 
-Welcome to your new app.
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Service</th>
+                <th scope="col">Image</th>
+                <th scope="col">State</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var container in listContainersResponse.Containers)
+            {
+                <tr>
+                    <td title="@container.Id"><a href="/status/@container.ComposeService">@container.Id.Substring(0, 12)</a></td>
+                    <td>@container.ComposeService</td>
+                    <td>@container.Image</td>
+                    <td>@container.State</td>
+                    <td>@container.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+
+@code {
+    private ListContainersResponse listContainersResponse;
+
+    protected override async Task OnInitializedAsync()
+    {
+        listContainersResponse = await ContainerOperationsClient.ListContainersAsync(new ListContainersRequest());
+    }
+}

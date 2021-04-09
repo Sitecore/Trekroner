@@ -4,32 +4,62 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Docker.DotNet;
+using Docker.DotNet.Models;
 
 namespace Sitecore.Trekroner.ContainerService
 {
     public class ContainerOperationsService : ContainerOperations.ContainerOperationsBase
     {
+        private readonly DockerClient DockerClient;
+
+        public ContainerOperationsService()
+        {
+            DockerClient = new DockerClientConfiguration(new Uri("npipe://./pipe/docker_engine")).CreateClient();
+        }
+
+        public override async Task<ListContainersResponse> ListContainers(ListContainersRequest request, ServerCallContext context)
+        {
+            // determine the current compose project
+            var composeProject = await GetComposeProjectName();
+
+            // find containers by compose project name
+            var containers = await ListContainers(new Dictionary<string, string>
+            {
+                { Constants.LabelComposeProject, composeProject }
+            });
+            var response = new ListContainersResponse
+            {
+                ProjectName = composeProject,
+                Containers = {
+                    containers.Select(x => new ListContainersResponseItem
+                    {
+                        Id = x.ID,
+                        Names = { x.Names },
+                        ComposeService = x.Labels[Constants.LabelComposeService],
+                        ComposeProject = x.Labels[Constants.LabelComposeProject],
+                        Image = x.Image,
+                        State = x.State,
+                        Status = x.Status
+                    })
+                }
+            };
+            return response;
+        }
+
         public override async Task<InspectContainerResponse> InspectContainer(InspectContainerRequest request, ServerCallContext context)
         {
-            var client = new DockerClientConfiguration(new Uri("npipe://./pipe/docker_engine"))
-                .CreateClient();
-            var thisContainerId = Environment.GetEnvironmentVariable("COMPUTERNAME").ToLower();
-            var thisContainer = await client.Containers.InspectContainerAsync(thisContainerId);
-            var composeProject = thisContainer.Config.Labels["com.docker.compose.project"];
-            var targetContainer = (await client.Containers.ListContainersAsync(new Docker.DotNet.Models.ContainersListParameters
+            // determine the current compose project
+            var composeProject = await GetComposeProjectName();
+
+            // find the container by its compose project name
+            var targetContainer = (await ListContainers(new Dictionary<string,string>
             {
-                Filters = new Dictionary<string, IDictionary<string, bool>>
-                {
-                    {
-                        "label", new Dictionary<string, bool>
-                        {
-                            { $"com.docker.compose.service={request.Name}", true },
-                            { $"com.docker.compose.project={composeProject}", true }
-                        }
-                    }
-                }
+                { Constants.LabelComposeService, request.Name },
+                { Constants.LabelComposeProject, composeProject }
             })).FirstOrDefault();
-            var result = await client.Containers.InspectContainerAsync(targetContainer.ID);
+
+            // inspect the container by its id
+            var result = await DockerClient.Containers.InspectContainerAsync(targetContainer.ID);
             return new InspectContainerResponse
             {
                 Id = result.ID,
@@ -48,6 +78,31 @@ namespace Sitecore.Trekroner.ContainerService
                     FinishedAt = result.State.FinishedAt,
                 }
             };
+        }
+
+        private async Task<string> GetComposeProjectName()
+        {
+            var thisContainerId = DockerEngineExtensions.GetCurrentContainerId();
+            var thisContainer = await DockerClient.Containers.InspectContainerAsync(thisContainerId);
+            return thisContainer.GetComposeProjectName();
+        }
+
+        private async Task<IList<ContainerListResponse>> ListContainers(IDictionary<string,string> labelValues)
+        {
+            var labelsDictionary = labelValues.Select(x => new KeyValuePair<string, bool>(
+                $"{x.Key}={x.Value}",
+                true
+            )).ToDictionary(x => x.Key, x => x.Value);
+
+            return await DockerClient.Containers.ListContainersAsync(new Docker.DotNet.Models.ContainersListParameters
+            {
+                Filters = new Dictionary<string, IDictionary<string, bool>>
+                {
+                    {
+                        "label", labelsDictionary
+                    }
+                }
+            });
         }
     }
 }

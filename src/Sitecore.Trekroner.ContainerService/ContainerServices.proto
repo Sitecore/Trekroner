@@ -5,7 +5,27 @@ option csharp_namespace = "Sitecore.Trekroner.ContainerService";
 package containerServices;
 
 service ContainerOperations {
+	rpc ListContainers (ListContainersRequest) returns  (ListContainersResponse);
 	rpc InspectContainer (InspectContainerRequest) returns (InspectContainerResponse);
+}
+
+message ListContainersRequest {
+
+}
+
+message ListContainersResponse {
+	string projectName = 1;
+	repeated ListContainersResponseItem containers = 2;
+}
+
+message ListContainersResponseItem {
+	string id = 1;
+	repeated string names = 2;
+	string composeService = 3;
+	string composeProject = 4;
+	string image = 5;
+	string state = 6;
+	string status = 7;
 }
 
 message InspectContainerRequest {

@@ -1,7 +1,7 @@
 ﻿@page "/status/{ServiceName}"
 @inject ContainerOperations.ContainerOperationsClient ContainerOperationsClient
 
-<h1>Container Status</h1>
+<h1>Container Status - @ServiceName</h1>
 
 @if (inspectContainerResponse == null)
 {
