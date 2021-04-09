@@ -1,4 +1,5 @@
 ﻿@page "/status/{ServiceName}"
+@implements IDisposable
 @inject ContainerOperations.ContainerOperationsClient ContainerOperationsClient
 
 <h1>Container Status - @ServiceName</h1>
@@ -67,11 +68,29 @@ else
     public string ServiceName { get; set; }
 
     private InspectContainerResponse inspectContainerResponse;
-    protected override async Task OnInitializedAsync()
+    private System.Threading.Timer timer;
+
+    private async Task RefreshContainer()
     {
         inspectContainerResponse = (await ContainerOperationsClient.InspectContainerAsync(new InspectContainerRequest
         {
             Name = ServiceName
         }));
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshContainer();
+
+        timer = new System.Threading.Timer(async (stateInfo) =>
+        {
+            await RefreshContainer();
+            StateHasChanged();
+        }, new System.Threading.AutoResetEvent(false), 1000, 1000);
+    }
+
+    public void Dispose()
+    {
+        timer.Dispose();
     }
 }
