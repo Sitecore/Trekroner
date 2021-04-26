@@ -1,0 +1,6 @@
+services:
+  ingress:
+    build:
+      target: debug
+    volumes:
+      - ..\..\src:c:\src

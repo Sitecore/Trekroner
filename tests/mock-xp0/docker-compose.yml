@@ -4,10 +4,13 @@ services:
   ingress:
     image: sitecore-trekroner:${VERSION:-latest}
     build:
-      context: ../../src/Sitecore.Trekoner
+      context: ../../src
     volumes:
       - c:\windows\system32\drivers\etc:c:\driversetc
       - .\docker\https:c:\https
+      - type: npipe
+        source: '\\.\pipe\docker_engine'
+        target: '\\.\pipe\docker_engine'
     environment:
       Proxy__DefaultDomain: ${SOLUTION_DOMAIN}
       Proxy__Services__cm__Name: "cm"
@@ -24,14 +27,26 @@ services:
 
   cm:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost/"]
+    environment:
+      Logging__LogLevel__Default: "Trace"
+      Logging__LogLevel__Microsoft: "Trace"
 
   id:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
+    entrypoint: ["cmd.exe", "/C", "echo Oooops & exit -1"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost/"]
 
   xconnect:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost/FAIL"]
 
   solr:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
     environment:
       ASPNETCORE_URLS: "http://*:8983"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost:8983/"]

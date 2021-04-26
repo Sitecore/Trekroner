@@ -1,0 +1,128 @@
+﻿@page "/status/{ServiceName}"
+@implements IDisposable
+@inject ContainerOperations.ContainerOperationsClient ContainerOperationsClient
+@inject IJSRuntime JSRuntime
+
+<h1>Container Status - @ServiceName</h1>
+
+@if (inspectContainerResponse == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h2>State</h2>
+    <table class="table">
+        <tbody>
+            <tr>
+                <th scope="row">Status</th>
+                <td>@inspectContainerResponse.State.Status</td>
+            </tr>
+            <tr>
+                <th scope="row">Started At</th>
+                <td>@inspectContainerResponse.State.StartedAt</td>
+            </tr>
+
+            @if (!inspectContainerResponse.State.Running)
+            {
+                <tr>
+                    <th scope="row">Exit Code</th>
+                    <td>@inspectContainerResponse.State.ExitCode</td>
+                </tr>
+                <tr>
+                    <th scope="row">Error</th>
+                    <td>@inspectContainerResponse.State.Error</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (inspectContainerResponse.State.Health != null)
+    {
+        <h2>Healthchecks</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                    <th scope="col">Exit Code</th>
+                    <th scope="col">Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in inspectContainerResponse.State?.Health?.Log)
+                {
+                    <tr>
+                        <td>@log.Start.ToDateTime()</td>
+                        <td>@log.End.ToDateTime()</td>
+                        <td>@log.ExitCode</td>
+                        <td>@log.Output</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h2>Logs</h2>
+    <input @bind="lockLogScroll" type="checkbox" id="logs-lock-scroll" /> <label for="logs-lock-scroll">Lock to bottom</label>
+    <div class="container-logs" id="container-logs">
+        @foreach (var log in logs)
+        {
+            <code>@log</code><br />
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string ServiceName { get; set; }
+
+    private CancellationTokenSource cts = new CancellationTokenSource();
+    private InspectContainerResponse inspectContainerResponse;
+    private Timer timer;
+    private IList<string> logs = new List<string>();
+    private bool lockLogScroll = true;
+
+    private async Task RefreshContainer()
+    {
+        inspectContainerResponse = (await ContainerOperationsClient.InspectContainerAsync(new InspectContainerRequest
+        {
+            Name = ServiceName
+        }));
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshContainer();
+
+        timer = new System.Threading.Timer(async (stateInfo) =>
+        {
+            await RefreshContainer();
+            StateHasChanged();
+        }, new System.Threading.AutoResetEvent(false), 1000, 1000);
+
+        var logTask = Task.Run(async () =>
+        {
+            var logResponse = ContainerOperationsClient.StreamContainerLogs(new StreamContainerLogsRequest
+            {
+                Id = inspectContainerResponse.Id
+            });
+            while (await logResponse.ResponseStream.MoveNext(cts.Token))
+            {
+                var log = logResponse.ResponseStream.Current;
+                logs.Add(log.Log);
+                this.StateHasChanged();
+                if (lockLogScroll)
+                {
+                    await JSRuntime.InvokeVoidAsync("scrollElementToBottom", "container-logs");
+                }
+            }
+        });
+    }
+
+    public void Dispose()
+    {
+        timer.Dispose();
+        cts.Dispose();
+    }
+}

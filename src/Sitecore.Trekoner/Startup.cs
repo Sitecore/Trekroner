@@ -1,21 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO.Abstractions;
-using Microsoft.ReverseProxy.Abstractions;
-using System.Net;
 using Sitecore.Trekroner.Hosts;
-using System.Threading;
 using Sitecore.Trekroner.Proxy;
-using Microsoft.ReverseProxy.Service;
-using Sitecore.Trekroner.Services;
+using Sitecore.Trekroner.HostedServices;
 using Sitecore.Trekroner.Net;
+using Sitecore.Trekroner.ContainerService;
 using Microsoft.ReverseProxy.Abstractions.Config;
 
 namespace Sitecore.Trekroner
@@ -31,9 +24,9 @@ namespace Sitecore.Trekroner
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<IFileSystem, FileSystem>();
-            services.AddScoped<IHostsWriter, HostsWriter>();
-            services.AddScoped<IIpAddressResolver, IpAddressResolver>();
+            services.AddSingleton<IFileSystem, FileSystem>();
+            services.AddSingleton<IHostsWriter, HostsWriter>();
+            services.AddSingleton<IIpAddressResolver, IpAddressResolver>();
             services.AddHostedService<HostsWriterService>();
 
             var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
@@ -48,6 +41,10 @@ namespace Sitecore.Trekroner
                     builderContext.AddXForwarded();
                     builderContext.UseOriginalHost = true;
                 });
+
+            services.AddRazorPages();
+            services.AddGrpc();
+            services.AddGrpcReflection();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,9 +53,32 @@ namespace Sitecore.Trekroner
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseWebAssemblyDebugging();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");               
             }
 
             app.UseHsts();
+            app.UseHttpsRedirection();
+
+            var proxyConfiguration = Configuration.GetSection(ProxyConfiguration.Key).Get<ProxyConfiguration>();
+            app.MapWhen(x => x.Request.Host.Host.Equals(proxyConfiguration.DefaultDomain), statusApp =>
+            {
+                statusApp.UseBlazorFrameworkFiles();
+                statusApp.UseStaticFiles();
+                statusApp.UseRouting();
+                statusApp.UseGrpcWeb();
+                statusApp.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapRazorPages();
+                    endpoints.MapGrpcReflectionService();
+                    endpoints.MapGrpcService<ContainerOperationsService>().EnableGrpcWeb();
+                    endpoints.MapFallbackToFile("index.html");
+                });
+            });
+
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {

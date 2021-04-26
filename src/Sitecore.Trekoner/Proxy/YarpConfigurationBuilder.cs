@@ -10,7 +10,7 @@ namespace Sitecore.Trekroner.Proxy
     {
         public IReadOnlyList<ProxyRoute> GetRoutes(ProxyConfiguration proxyConfig)
         {
-            return proxyConfig.Services.Values.Select(x => new ProxyRoute()
+            return proxyConfig?.Services?.Values.Select(x => new ProxyRoute()
             {
                 RouteId = $"route-{x.Name}",
                 ClusterId = $"cluster-{x.Name}",
@@ -23,7 +23,7 @@ namespace Sitecore.Trekroner.Proxy
 
         public IReadOnlyList<Cluster> GetClusters(ProxyConfiguration proxyConfig)
         {
-            return proxyConfig.Services.Values.Select(x => new Cluster()
+            return proxyConfig?.Services?.Values.Select(x => new Cluster()
             {
                 Id = $"cluster-{x.Name}",
                 Destinations = new Dictionary<string, Destination>(StringComparer.OrdinalIgnoreCase)
