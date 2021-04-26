@@ -6,6 +6,8 @@ using Grpc.Core;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Google.Protobuf.WellKnownTypes;
+using System.IO;
+using System.Buffers;
 
 namespace Sitecore.Trekroner.ContainerService
 {
@@ -93,6 +95,64 @@ namespace Sitecore.Trekroner.ContainerService
                     }
                 }
             };
+        }
+
+        public override async Task StreamContainerLogs(StreamContainerLogsRequest request, IServerStreamWriter<StreamContainerLogsResponse> responseStream, ServerCallContext context)
+        {
+            const int bufferSize = 81920;
+
+            var streamTask = DockerClient.Containers.GetContainerLogsAsync(request.Id, false, new ContainerLogsParameters
+            {
+                Follow = true,
+                Tail = "500",
+                ShowStdout = true,
+                ShowStderr = true
+            }, context.CancellationToken);
+
+            var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            try
+            {
+                using (var stream = await streamTask)
+                using (InfiniteStreamReader outReader = new InfiniteStreamReader(), errReader = new InfiniteStreamReader())
+                {
+                    while (!context.CancellationToken.IsCancellationRequested)
+                    {
+                        var result = await stream.ReadOutputAsync(buffer, 0, buffer.Length, context.CancellationToken).ConfigureAwait(false);
+                        if (result.EOF)
+                        {
+                            return;
+                        }
+
+                        InfiniteStreamReader target;
+                        switch (result.Target)
+                        {
+                            case MultiplexedStream.TargetStream.StandardOut:
+                                target = outReader;
+                                break;
+                            case MultiplexedStream.TargetStream.StandardError:
+                                target = errReader;
+                                break;
+                            default:
+                                throw new InvalidOperationException($"Unexpected TargetStream: {result.Target}");
+                        }
+
+                        target.WriteBytes(buffer, result.Count);
+                        var nextLine = target.ReadNextLine();
+                        while (nextLine != null)
+                        {
+                            await responseStream.WriteAsync(new StreamContainerLogsResponse
+                            {
+                                Log = nextLine
+                            });
+                            nextLine = target.ReadNextLine();
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
 
         private async Task<string> GetComposeProjectName()

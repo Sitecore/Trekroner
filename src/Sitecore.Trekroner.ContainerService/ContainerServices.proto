@@ -6,6 +6,7 @@ package containerServices;
 service ContainerOperations {
 	rpc ListContainers (ListContainersRequest) returns  (ListContainersResponse);
 	rpc InspectContainer (InspectContainerRequest) returns (InspectContainerResponse);
+	rpc StreamContainerLogs (StreamContainerLogsRequest) returns (stream StreamContainerLogsResponse);
 }
 
 message ListContainersRequest {
@@ -63,4 +64,12 @@ message ContainerHealthcheckResult {
 	google.protobuf.Timestamp end = 2;
 	int64 exitCode = 3;
 	string output = 4;
+}
+
+message StreamContainerLogsRequest {
+	string id = 1;
+}
+
+message StreamContainerLogsResponse {
+	string log = 1;
 }

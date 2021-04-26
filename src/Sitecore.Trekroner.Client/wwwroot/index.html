@@ -20,6 +20,12 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
-</body>
 
+    <script type="text/javascript">
+        function scrollElementToBottom(id) {
+            var element = document.getElementById(id);
+            element.scrollTop = element.scrollHeight;
+        }
+    </script>
+</body>
 </html>

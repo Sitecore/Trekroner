@@ -48,3 +48,16 @@ a, .btn-link {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+.container-logs {
+    height: 300px;
+    overflow-y: scroll;
+    border: 1px inset;
+    padding: 10px;
+    background-color: black;
+    margin-bottom: 30px;
+}
+
+.container-logs code {
+    color: white;
+}

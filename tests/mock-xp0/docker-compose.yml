@@ -29,6 +29,9 @@ services:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
     healthcheck:
       test: ["CMD", "curl", "--fail", "-I", "-s", "http://localhost/"]
+    environment:
+      Logging__LogLevel__Default: "Trace"
+      Logging__LogLevel__Microsoft: "Trace"
 
   id:
     image: mcr.microsoft.com/dotnet/samples:aspnetapp
