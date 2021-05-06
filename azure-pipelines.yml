@@ -36,6 +36,30 @@ stages:
       inputs:
         command: build
         dockerfile: '$(Build.SourcesDirectory)/src/Dockerfile'
+        repository: '$(REGISTRY_MAPPED)/community/tools/trekroner'
         tags: |
           $(version)
           $(longTag)
+
+- stage: Push
+  dependsOn:
+  - Build
+  condition: ne(variables['Build.Reason'], 'PullRequest')
+
+  jobs:
+    - job: Push
+      displayName: Push image
+      steps:
+      - task: Docker@2
+        displayName: Login to registry
+        inputs:
+          containerRegistry: '$(RegistryServiceConnection)'
+          command: 'login'
+      - task: Docker@2
+        inputs:
+          containerRegistry: '$(RegistryServiceConnection)'
+          repository: '$(REGISTRY_MAPPED)/community/tools/trekroner'
+          command: 'push'
+          tags: |
+            $(version)
+            $(longTag)
