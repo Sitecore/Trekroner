@@ -23,13 +23,14 @@ variables:
   longTag: '$(version).$(Build.BuildId)'
   REGISTRY_MAPPED: $(Registry)
 
+pool: Default
+
 stages:
 - stage: Build
   displayName: Build image
   jobs:
   - job: Build
     displayName: Build
-    pool: Default
     steps:
     - task: Docker@2
       displayName: Build an image
