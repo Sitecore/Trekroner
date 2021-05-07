@@ -19,8 +19,7 @@ resources:
 - repo: self
 
 variables:
-  version: '0.1'
-  longTag: '$(version).$(Build.BuildId)'
+  buildNumber: $(Build.BuildID)
   REGISTRY_MAPPED: $(Registry)
 
 pool: Default
@@ -29,6 +28,17 @@ stages:
 - stage: Build
   displayName: Build image
   jobs:
+  - task: PowerShell@2
+    displayName: Set the version
+    inputs:
+      targetType: 'inline'
+      script: |
+        $shortTag = (Get-Content ..\..\build.config.json | ConvertFrom-Json).Version
+        $longTag = $(shortTag).$(buildNumber)
+        Write-Host "Setting the short tag to '$shortTag'."
+        Write-Host "Setting the long tag to '$longTag'."
+        Write-Host "##vso[task.setvariable variable=shortTag]$shortTag"
+        Write-Host "##vso[task.setvariable variable=longTag]$longTag"
   - job: Build
     displayName: Build
     steps:
@@ -36,10 +46,11 @@ stages:
       displayName: Build an image
       inputs:
         command: build
+        arguments: '--build-arg VERSION=$(longTag) --target build'
         dockerfile: '$(Build.SourcesDirectory)/src/Dockerfile'
         repository: 'nwesitecore/sitecore-trekroner'
         tags: |
-          $(version)
+          $(shortTag)
           $(longTag)
 
 - stage: Push
@@ -62,5 +73,5 @@ stages:
           repository: 'nwesitecore/sitecore-trekroner'
           command: 'push'
           tags: |
-            $(version)
+            $(shortTag)
             $(longTag)

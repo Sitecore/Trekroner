@@ -6,9 +6,7 @@ services:
     volumes:
       - .\docker\cm:c:\mounted
   ingress:
-    image: sitecore-trekroner:${VERSION:-latest}
-    build:
-      context: ../../src
+    image: nwesitecore/sitecore-trekroner:${VERSION}
     volumes:
       - c:\windows\system32\drivers\etc:c:\driversetc
       - .\docker\https:c:\https

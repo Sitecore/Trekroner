@@ -9,6 +9,8 @@ USER ContainerAdministrator
 ENTRYPOINT ["dotnet", "watch", "-v",  "run", "--project", ".\\Sitecore.Trekoner", "--no-launch-profile"]
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+ARG VERSION
+
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
@@ -19,7 +21,8 @@ WORKDIR /app
 
 # Copy everything else and build
 COPY . ./
-RUN dotnet publish .\Sitecore.Trekoner\Sitecore.Trekroner.csproj -c Release -o out
+RUN echo %VERSION%
+RUN dotnet publish /p:Version=%VERSION% .\Sitecore.Trekoner\Sitecore.Trekroner.csproj -c Release -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:5.0
