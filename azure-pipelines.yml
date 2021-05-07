@@ -19,48 +19,74 @@ resources:
 - repo: self
 
 variables:
-  version: '0.1'
-  longTag: '$(version).$(Build.BuildId)'
+  buildNumber: $(Build.BuildID)
   REGISTRY_MAPPED: $(Registry)
 
 pool: Default
 
 stages:
+- stage: Versioning
+  jobs: 
+  - job: Tags
+    steps:
+    - task: PowerShell@2
+      name: BuildTags
+      displayName: Set the version
+      inputs:
+        targetType: 'inline'
+        script: |
+          $shortTag = (Get-Content $(Build.SourcesDirectory)\build.config.json | ConvertFrom-Json).Version
+          $longTag = "$shortTag.$(buildNumber)"
+          Write-Host "Setting the short tag to '$shortTag'."
+          Write-Host "Setting the long tag to '$longTag'."
+          Write-Host "##vso[task.setvariable variable=shortTag;isOutput=true]$shortTag"
+          Write-Host "##vso[task.setvariable variable=longTag;isOutput=true]$longTag"
+
 - stage: Build
+  dependsOn:
+  - Versioning
   displayName: Build image
   jobs:
   - job: Build
     displayName: Build
+    variables:
+      longTag: $[stageDependencies.Versioning.Tags.outputs['BuildTags.longTag']]
+      shortTag: $[stageDependencies.Versioning.Tags.outputs['BuildTags.shortTag']]
     steps:
     - task: Docker@2
       displayName: Build an image
       inputs:
         command: build
+        arguments: '--build-arg VERSION=$(longTag) --target build'
         dockerfile: '$(Build.SourcesDirectory)/src/Dockerfile'
         repository: 'nwesitecore/sitecore-trekroner'
         tags: |
-          $(version)
+          $(shortTag)
           $(longTag)
 
 - stage: Push
   dependsOn:
+  - Versioning
   - Build
   condition: ne(variables['Build.Reason'], 'PullRequest')
 
   jobs:
-    - job: Push
-      displayName: Push image
-      steps:
-      - task: Docker@2
-        displayName: Login to registry
-        inputs:
-          containerRegistry: '$(RegistryServiceConnection)'
-          command: 'login'
-      - task: Docker@2
-        inputs:
-          containerRegistry: '$(RegistryServiceConnection)'
-          repository: 'nwesitecore/sitecore-trekroner'
-          command: 'push'
-          tags: |
-            $(version)
-            $(longTag)
+  - job: Push
+    displayName: Push image
+    variables:
+      longTag: $[stageDependencies.Versioning.Tags.outputs['BuildTags.longTag']]
+      shortTag: $[stageDependencies.Versioning.Tags.outputs['BuildTags.shortTag']]
+    steps:
+    - task: Docker@2
+      displayName: Login to registry
+      inputs:
+        containerRegistry: '$(RegistryServiceConnection)'
+        command: 'login'
+    - task: Docker@2
+      inputs:
+        containerRegistry: '$(RegistryServiceConnection)'
+        repository: 'nwesitecore/sitecore-trekroner'
+        command: 'push'
+        tags: |
+          $(shortTag)
+          $(longTag)

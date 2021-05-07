@@ -2,9 +2,7 @@ version: "2.4"
 services:
 
   ingress:
-    image: sitecore-trekroner:${VERSION:-latest}
-    build:
-      context: ../../src
+    image: nwesitecore/sitecore-trekroner:${VERSION}
     volumes:
       - c:\windows\system32\drivers\etc:c:\driversetc
       - .\docker\https:c:\https
