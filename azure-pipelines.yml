@@ -37,7 +37,7 @@ stages:
       inputs:
         command: build
         dockerfile: '$(Build.SourcesDirectory)/src/Dockerfile'
-        repository: '$(REGISTRY_MAPPED)/nwesitecore/trekroner'
+        repository: 'nwesitecore/trekroner'
         tags: |
           $(version)
           $(longTag)
