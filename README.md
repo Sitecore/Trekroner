@@ -1,3 +1,7 @@
+_Trekroner_ was an internal POC at Sitecore, that's since been abandoned. It's being archived here, should the community wish to fork and adopt it.
+
+---
+
 # Sitecore Trekroner 👑👑👑
 _A reverse proxy for Docker-based Sitecore development._
 
